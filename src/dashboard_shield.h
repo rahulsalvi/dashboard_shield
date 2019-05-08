@@ -1,7 +1,7 @@
 #ifndef DASHBOARD_SHIELD_H
 #define DASHBOARD_SHIELD_H
 
-#include <cstdint>
+#include <stdint.h>
 
 #define DS_PIXELS_PER_CHANNEL 32
 #define DS_PIXEL_CHANNELS 4

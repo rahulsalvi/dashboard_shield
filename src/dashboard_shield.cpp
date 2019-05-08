@@ -1,29 +1,26 @@
 #include "WProgram.h"
 
+#include "dashboard_definitions.h"
 #include "dashboard_shield.h"
-
-#define NOP __asm("NOP\n");
-#define NOP4                                                                                       \
-    NOP;                                                                                           \
-    NOP;                                                                                           \
-    NOP;                                                                                           \
-    NOP;
-#define NOP8                                                                                       \
-    NOP4;                                                                                          \
-    NOP4;
-#define NOP16                                                                                      \
-    NOP8;                                                                                          \
-    NOP8;
-#define NOP32                                                                                      \
-    NOP16;                                                                                         \
-    NOP16;
 
 namespace dashboard_shield {
 
-    static uint8_t rgb_led_mask_0[4] = {0x00, 0x40, 0x20, 0x02};
-    static uint8_t rgb_led_mask_1[4] = {0x00, 0x10, 0x80, 0x01};
-    static uint8_t rgb_led_mask_2[4] = {0x00, 0x40, 0x20, 0x10};
-    static uint8_t rgb_led_mask_3[4] = {0x00, 0x20, 0x80, 0x40};
+    static const uint8_t rgb_led_mask_0[] = {RGB_LED_MASK_OFF,
+                                             RGB_LED_0_MASK_RED,
+                                             RGB_LED_0_MASK_GRN,
+                                             RGB_LED_0_MASK_BLU};
+    static const uint8_t rgb_led_mask_1[] = {RGB_LED_MASK_OFF,
+                                             RGB_LED_1_MASK_RED,
+                                             RGB_LED_1_MASK_GRN,
+                                             RGB_LED_1_MASK_BLU};
+    static const uint8_t rgb_led_mask_2[] = {RGB_LED_MASK_OFF,
+                                             RGB_LED_2_MASK_RED,
+                                             RGB_LED_2_MASK_GRN,
+                                             RGB_LED_2_MASK_BLU};
+    static const uint8_t rgb_led_mask_3[] = {RGB_LED_MASK_OFF,
+                                             RGB_LED_3_MASK_RED,
+                                             RGB_LED_3_MASK_GRN,
+                                             RGB_LED_3_MASK_BLU};
 
     void update_rgb_leds(rgb_led_t data[DS_RGB_LEDS]) {
         GPIOD_PTOR = (GPIOD_PDOR & 0xFF) ^ (rgb_led_mask_0[data[0]] | rgb_led_mask_1[data[1]]);
@@ -31,25 +28,31 @@ namespace dashboard_shield {
     }
 
     void write_bits_bank0_00() {
+        __disable_irq();
         GPIOD_PSOR = 0x0C;
         NOP32;
         GPIOD_PCOR = 0x0C;
+        __enable_irq();
         NOP32;
     };
     void write_bits_bank0_01() {
+        __disable_irq();
         GPIOD_PSOR = 0x0C;
         NOP32;
         GPIOD_PCOR = 0x08;
+        __enable_irq();
         NOP32;
         GPIOD_PCOR = 0x04;
         NOP32;
     };
     void write_bits_bank0_10() {
+        __disable_irq();
         GPIOD_PSOR = 0x0C;
         NOP32;
-        GPIOD_PCOR = 0x08;
-        NOP32;
         GPIOD_PCOR = 0x04;
+        __enable_irq();
+        NOP32;
+        GPIOD_PCOR = 0x08;
         NOP32;
     };
     void write_bits_bank0_11() {
@@ -59,16 +62,16 @@ namespace dashboard_shield {
         NOP32;
     };
 
-    void latch_bits_bank0() { delayMicroseconds(6); };
+    void latch_bits() { delayMicroseconds(6); };
 
     void update_pixels_bank0(pixel_channel_t data[2]) {
-        for (int i = 0; i < 32; i++) {
+        for (int i = 0; i < DS_PIXELS_PER_CHANNEL; i++) {
             uint8_t* pixel0 = (uint8_t*)&data[0].pixels[i];
             uint8_t* pixel1 = (uint8_t*)&data[1].pixels[i];
-            for (int j = 0; j < 4; j++) {
+            for (int j = 0; j < 4; j++) { // 4 bytes per pixel
                 uint8_t byte0 = *(pixel0 + j);
                 uint8_t byte1 = *(pixel1 + j);
-                for (int k = 0; k < 8; k++) {
+                for (int k = 0; k < 8; k++) { // 8 bits per byte
                     uint8_t bit0 = byte0 & (1 << (7 - k));
                     uint8_t bit1 = byte1 & (1 << (7 - k));
                     if (!bit1 && !bit0) {
@@ -83,13 +86,14 @@ namespace dashboard_shield {
                 }
             }
         }
-        latch_bits_bank0();
     }
+
     void update_pixels_bank1(pixel_channel_t data[2]) {}
 
     void update_pixels(pixel_channel_t data[DS_PIXEL_CHANNELS]) {
         update_pixels_bank0(data);
         update_pixels_bank1(data + 2);
+        latch_bits();
     }
 
     button_state_t update(dashboard_t& data) {
