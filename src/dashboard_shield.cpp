@@ -69,8 +69,8 @@ namespace dashboard_shield {
                 uint8_t byte0 = *(pixel0 + j);
                 uint8_t byte1 = *(pixel1 + j);
                 for (int k = 0; k < 8; k++) {
-                    uint8_t bit0 = byte0 && (1 << (7 - k));
-                    uint8_t bit1 = byte1 && (1 << (7 - k));
+                    uint8_t bit0 = byte0 & (1 << (7 - k));
+                    uint8_t bit1 = byte1 & (1 << (7 - k));
                     if (!bit1 && !bit0) {
                         write_bits_bank0_00();
                     } else if (!bit1 && bit0) {
@@ -97,5 +97,7 @@ namespace dashboard_shield {
         update_pixels(data.pixel_channels);
         return 0;
     }
+
+    void begin() { return; }
 
 } // namespace dashboard_shield
