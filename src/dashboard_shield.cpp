@@ -27,73 +27,45 @@ namespace dashboard_shield {
         GPIOC_PTOR = (GPIOC_PDOR & 0xFF) ^ (rgb_led_mask_2[data[2]] | rgb_led_mask_3[data[3]]);
     }
 
-    void write_bits_bank0_00() {
+    void write_bits(uint8_t bank0, uint8_t bank1) {
         __disable_irq();
         GPIOD_PSOR = 0x0C;
-        NOP32;
+        GPIOC_PSOR = 0x18;
+        NOPN(0, 1, 2);
+        GPIOD_PCOR = ((~(bank0 << 2)) & 0x0C);
+        GPIOC_PCOR = ((~(bank1 << 3)) & 0x18);
+        __enable_irq();
+        NOPN(0, 2, 2);
         GPIOD_PCOR = 0x0C;
-        __enable_irq();
-        NOP32;
-    };
-    void write_bits_bank0_01() {
-        __disable_irq();
-        GPIOD_PSOR = 0x0C;
-        NOP32;
-        GPIOD_PCOR = 0x08;
-        __enable_irq();
-        NOP32;
-        GPIOD_PCOR = 0x04;
-        NOP32;
-    };
-    void write_bits_bank0_10() {
-        __disable_irq();
-        GPIOD_PSOR = 0x0C;
-        NOP32;
-        GPIOD_PCOR = 0x04;
-        __enable_irq();
-        NOP32;
-        GPIOD_PCOR = 0x08;
-        NOP32;
-    };
-    void write_bits_bank0_11() {
-        GPIOD_PSOR = 0x0C;
-        NOP32;
-        GPIOD_PCOR = 0x0C;
-        NOP32;
-    };
+        GPIOC_PCOR = 0x18;
+        NOPN(0, 1, 1);
+    }
 
-    void latch_bits() { delayMicroseconds(6); };
-
-    void update_pixels_bank0(pixel_channel_t data[2]) {
+    void update_pixels(pixel_channel_t data[DS_PIXEL_CHANNELS]) {
         for (int i = 0; i < DS_PIXELS_PER_CHANNEL; i++) {
             uint8_t* pixel0 = (uint8_t*)&data[0].pixels[i];
             uint8_t* pixel1 = (uint8_t*)&data[1].pixels[i];
+            uint8_t* pixel2 = (uint8_t*)&data[2].pixels[i];
+            uint8_t* pixel3 = (uint8_t*)&data[3].pixels[i];
             for (int j = 0; j < 4; j++) { // 4 bytes per pixel
                 uint8_t byte0 = *(pixel0 + j);
                 uint8_t byte1 = *(pixel1 + j);
-                for (int k = 0; k < 8; k++) { // 8 bits per byte
-                    uint8_t bit0 = byte0 & (1 << (7 - k));
-                    uint8_t bit1 = byte1 & (1 << (7 - k));
-                    if (!bit1 && !bit0) {
-                        write_bits_bank0_00();
-                    } else if (!bit1 && bit0) {
-                        write_bits_bank0_01();
-                    } else if (bit1 && !bit0) {
-                        write_bits_bank0_10();
-                    } else if (bit1 && bit0) {
-                        write_bits_bank0_11();
-                    }
+                uint8_t byte2 = *(pixel2 + j);
+                uint8_t byte3 = *(pixel3 + j);
+                for (int k = 7; k > -1; k--) { // 8 bits per byte
+                    uint8_t bit0 = ((byte0 & (1 << k)) >> k);
+                    uint8_t bit1 = ((byte1 & (1 << k)) >> k);
+                    uint8_t bit2 = ((byte2 & (1 << k)) >> k);
+                    uint8_t bit3 = ((byte3 & (1 << k)) >> k);
+
+                    uint8_t bank0 = (bit1 << 1) | (bit0);
+                    uint8_t bank1 = (bit3 << 1) | (bit2);
+
+                    write_bits(bank0, bank1);
                 }
             }
         }
-    }
-
-    void update_pixels_bank1(pixel_channel_t data[2]) {}
-
-    void update_pixels(pixel_channel_t data[DS_PIXEL_CHANNELS]) {
-        update_pixels_bank0(data);
-        update_pixels_bank1(data + 2);
-        latch_bits();
+        delayMicroseconds(6);
     }
 
     button_state_t update(dashboard_t& data) {
@@ -102,6 +74,27 @@ namespace dashboard_shield {
         return 0;
     }
 
-    void begin() { return; }
+    void begin() {
+        PORTC_PCR0 = PCR_MUX(1);
+        PORTC_PCR1 = PCR_MUX(1);
+        PORTC_PCR2 = PCR_MUX(1);
+        PORTC_PCR3 = PCR_MUX(1);
+        PORTC_PCR4 = PCR_MUX(1);
+        PORTC_PCR5 = PCR_MUX(1);
+        PORTC_PCR6 = PCR_MUX(1);
+        PORTC_PCR7 = PCR_MUX(1);
+
+        PORTD_PCR0 = PCR_MUX(1);
+        PORTD_PCR1 = PCR_MUX(1);
+        PORTD_PCR2 = PCR_MUX(1);
+        PORTD_PCR3 = PCR_MUX(1);
+        PORTD_PCR4 = PCR_MUX(1);
+        PORTD_PCR5 = PCR_MUX(1);
+        PORTD_PCR6 = PCR_MUX(1);
+        PORTD_PCR7 = PCR_MUX(1);
+
+        GPIOC_PDDR |= 0x000000FF;
+        GPIOD_PDDR |= 0x000000FF;
+    }
 
 } // namespace dashboard_shield
