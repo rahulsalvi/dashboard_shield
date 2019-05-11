@@ -37,6 +37,8 @@ namespace dashboard_shield {
     void           begin();
     button_state_t update(dashboard_t& data);
 
+    bool get_button(int index, button_state_t& data);
+
 } // namespace dashboard_shield
 
 #endif // DASHBOARD_SHIELD_H

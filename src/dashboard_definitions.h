@@ -2,6 +2,8 @@
 #define DASHBOARD_DEFINITIONS_H
 
 #define PCR_MUX(x) (x << 8)
+#define PCR_PE 0x02
+#define PCR_PS 0x01
 
 #define RGB_LED_MASK_OFF 0x00
 

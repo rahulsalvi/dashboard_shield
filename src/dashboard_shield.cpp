@@ -68,13 +68,35 @@ namespace dashboard_shield {
         delayMicroseconds(6);
     }
 
+    button_state_t read_buttons() { return GPIOB_PDIR & 0x0F; }
+
+    bool get_button(int index, button_state_t& data) {
+        switch (index) {
+            case 0:
+                return !(data & (1 << 2));
+            case 1:
+                return !(data & (1 << 3));
+            case 2:
+                return !(data & (1 << 0));
+            case 3:
+                return !(data & (1 << 1));
+            default:
+                return false;
+        }
+    }
+
     button_state_t update(dashboard_t& data) {
         update_rgb_leds(data.rgb_leds);
         update_pixels(data.pixel_channels);
-        return 0;
+        return read_buttons();
     }
 
     void begin() {
+        PORTB_PCR0 = PCR_MUX(1) | PCR_PE | PCR_PS;
+        PORTB_PCR1 = PCR_MUX(1) | PCR_PE | PCR_PS;
+        PORTB_PCR2 = PCR_MUX(1) | PCR_PE | PCR_PS;
+        PORTB_PCR3 = PCR_MUX(1) | PCR_PE | PCR_PS;
+
         PORTC_PCR0 = PCR_MUX(1);
         PORTC_PCR1 = PCR_MUX(1);
         PORTC_PCR2 = PCR_MUX(1);
@@ -93,6 +115,7 @@ namespace dashboard_shield {
         PORTD_PCR6 = PCR_MUX(1);
         PORTD_PCR7 = PCR_MUX(1);
 
+        GPIOB_PDDR &= 0xFFFFFFF0;
         GPIOC_PDDR |= 0x000000FF;
         GPIOD_PDDR |= 0x000000FF;
     }
