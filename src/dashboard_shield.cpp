@@ -31,14 +31,14 @@ namespace dashboard_shield {
         __disable_irq();
         GPIOD_PSOR = 0x0C;
         GPIOC_PSOR = 0x18;
-        NOPN(0, 1, 2);
+        NOPN(0, 1, 7);
         GPIOD_PCOR = ((~(bank0 << 2)) & 0x0C);
         GPIOC_PCOR = ((~(bank1 << 3)) & 0x18);
         __enable_irq();
-        NOPN(0, 2, 2);
+        NOPN(0, 4, 4);
         GPIOD_PCOR = 0x0C;
         GPIOC_PCOR = 0x18;
-        NOPN(0, 1, 1);
+        NOPN(0, 0, 2);
     }
 
     void update_pixels(pixel_channel_t data[DS_PIXEL_CHANNELS]) {
@@ -65,7 +65,7 @@ namespace dashboard_shield {
                 }
             }
         }
-        delayMicroseconds(6);
+        delayMicroseconds(10);
     }
 
     button_state_t read_buttons() { return GPIOB_PDIR & 0x0F; }
