@@ -15,8 +15,8 @@ void setup() {
     dashboard.rgb_leds[2] = DS_RGB_GRN;
     dashboard.rgb_leds[3] = DS_RGB_BLU;
 
-    for (int i = 0; i < 4; i++) {
-        for (int j = 0; j < 32; j++) {
+    for (int i = 0; i < DS_PIXEL_CHANNELS; i++) {
+        for (int j = 0; j < DS_PIXELS_PER_CHANNEL; j++) {
             dashboard.pixel_channels[i].pixels[j].red = 0;
             dashboard.pixel_channels[i].pixels[j].grn = 0;
             dashboard.pixel_channels[i].pixels[j].blu = 0;
@@ -29,9 +29,9 @@ void setup() {
 }
 
 void loop() {
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < DS_PIXEL_CHANNELS; i++) {
         dashboard.rgb_leds[i] = (counter + i) % 4;
-        for (int j = 0; j < 32; j++) {
+        for (int j = 0; j < DS_PIXELS_PER_CHANNEL; j++) {
             dashboard.pixel_channels[i].pixels[j].red = (counter == 0) * 255;
             dashboard.pixel_channels[i].pixels[j].grn = (counter == 1) * 255;
             dashboard.pixel_channels[i].pixels[j].blu = (counter == 2) * 255;
