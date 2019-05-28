@@ -15,8 +15,8 @@
 namespace dashboard_shield {
 
     typedef struct pixel_t {
-        uint8_t red;
         uint8_t grn;
+        uint8_t red;
         uint8_t blu;
         uint8_t wht;
     } pixel_t;
