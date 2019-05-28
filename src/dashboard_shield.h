@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-#define DS_PIXELS_PER_CHANNEL 32
+#define DS_PIXELS_PER_CHANNEL 16
 #define DS_PIXEL_CHANNELS 4
 #define DS_RGB_LEDS 4
 
